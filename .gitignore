@@ -1,0 +1,20 @@
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.vscode
+
+# Local Visual Studio Code Files
+.history/
+.vscode/
+
+# Autoencoders
+autoencoders.ipynb
+
+# Data
+*.csv
+*data.zip
+*dataset_test.pkl
+*datasets_train_val.pkl
