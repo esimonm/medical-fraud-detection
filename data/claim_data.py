@@ -3,9 +3,9 @@ import pandas as pd
 import pickle
 from sklearn.model_selection import KFold
 
-def load_claim_data(path_X, path_Y, k, load_from_pickle=False, pickle_path=''):
+def process_mil_claim_data(path_X, path_Y, k, load_from_pickle=False, pickle_path=''):
     """
-    Load the medical claims data.
+    Process the medical claims data for MIL from pre-processed csv files.
     Parameters
     ---------------------
     path_X : string
@@ -106,3 +106,34 @@ def load_claim_data(path_X, path_Y, k, load_from_pickle=False, pickle_path=''):
     print('Data pickled succesfully!')
 
     return datasets
+
+def load_mil_pickled_data(data_path):
+    """
+    Load pre-processed data from pickle for MIL.
+    """
+    datasets = pickle.load(open(data_path, "rb"))
+
+    X, y = [], []
+
+    print("Preparing train data...")
+    for i, tup in enumerate(datasets[0]['train']):
+        X.append(tup[0])
+        y.append(tup[1])
+
+    print("Train data ready!")
+
+    X_valid, y_valid = [], []
+
+    print("Preparing validation data...")
+    for i, tup in enumerate(datasets[0]['test']):
+        X_valid.append(tup[0])
+        y_valid.append(tup[1])
+
+    print("Validation data ready!")
+
+    del datasets
+
+    shape = X[0].shape
+    print('First train datapoint shape: ', shape)
+
+    return X, y, X_valid, y_valid

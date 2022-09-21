@@ -1,20 +1,29 @@
+'''
+Run script to train MIL_RC model.
+Edit SCRIPT PARAMETERS section for hyper-parameter tuning, data loading, etc.
+'''
+
 import sys
 sys.path.insert(0, './data')
 import torch
 import pickle
 import time
-from claim_data import load_claim_data
+from claim_data import process_mil_claim_data
+from claim_data import load_mil_pickled_data
 from claim_models import MIL_RC
-from claim_utils import load_data
-from claim_utils import train_model
+from claim_utils import mil_train_model
 
 DEVICE = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
+# SCRIPT PARAMETERS:
+
 # Data
+PROCESS_DATA_FROM_CSV = False
 PATH_X = "data/x_train.csv"
 PATH_Y = "data/y_train.csv"
 K = 1
-LOAD_DATA = True
+LOAD_DATA_FROM_PICKLE = True
+DATA_PICKLE_PATH='data/datasets_train_val.pkl'
 
 # Fixed
 VOCAB_SIZE = 13326
@@ -27,20 +36,24 @@ POOLING_MODE = "max"
 EPOCHS = 5
 
 # Checkpoint
-CHECKPOINT_PATH = None
-# CHECKPOINT_PATH = 'results/models/20210522-173208_mil_rc_checkpoint.pth'
+CHECKPOINT_PATH = None # Indicate path as: 'results/models/20210522-173208_mil_rc_checkpoint.pth'
+
 
 # RUN SCRIPT --------------------------------------------------------------------------------------
 stamp = time.strftime("%Y%m%d-%H%M%S")
+print('TIMESTAMP:', stamp)
+print('DEVICE:', DEVICE)
 
 # LOAD DATA
 
+if PROCESS_DATA_FROM_CSV:
+  process_mil_claim_data(PATH_X, PATH_Y, K, LOAD_DATA_FROM_PICKLE, DATA_PICKLE_PATH)
+
 data_path = "data/datasets_train_val.pkl"
 
-x, y, x_valid, y_valid = load_data(data_path)
+x, y, x_valid, y_valid = load_mil_pickled_data(data_path)
 
-# LOAD & TRAIN MODEL
-
+# INITIALIZE MODEL
 print('Initializing model...')
 
 input_size = x[0].shape[1]-19+18*EMBED_DIM
@@ -59,7 +72,8 @@ else:
     start_epoch = checkpoint['epoch']
     loss = checkpoint['loss']
 
-mil, metrics = train_model(mil, optimizer, x, y, x_valid, y_valid, EPOCHS=EPOCHS, START_EPOCH=start_epoch, checkpoint_path="results/models/{}_mil_rc_checkpoint.pth".format(stamp))
+# TRAIN MODEL
+mil, metrics = mil_train_model(mil, optimizer, x, y, x_valid, y_valid, EPOCHS=EPOCHS, START_EPOCH=start_epoch, checkpoint_path="results/models/{}_mil_rc_checkpoint.pth".format(stamp))
 
 # SAVE RESULTS
 print('Saving results...')

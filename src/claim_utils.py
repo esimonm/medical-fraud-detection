@@ -26,7 +26,7 @@ def bag_loss(predicted, truth):
 
 
 # One train loop instance
-def train_loop(X, y, model, optimizer, DEVICE):
+def mil_train_loop(X, y, model, optimizer, DEVICE):
     # Setup
     model.train()
     optimizer.zero_grad()
@@ -73,7 +73,7 @@ def train_loop(X, y, model, optimizer, DEVICE):
 
 
 # One valid loop instance
-def valid_loop(X_valid, y_valid, model, DEVICE):
+def mil_valid_loop(X_valid, y_valid, model, DEVICE):
     # Setup
     model.eval()
 
@@ -117,7 +117,7 @@ def valid_loop(X_valid, y_valid, model, DEVICE):
 
 
 # Function to train passed model
-def train_model(
+def mil_train_model(
         model, optimizer, X, y, X_valid, y_valid, EPOCHS=40, START_EPOCH=0, DEVICE='cuda', trial=None,
         checkpoint_path=''):
     print('Initializing training...')
@@ -135,7 +135,7 @@ def train_model(
         # TRAIN ---------------------------------------------
         train_start = time.time()
 
-        mean_loss, accuracy, TPR, FPR, con_mat = train_loop(X, y, model, optimizer, DEVICE)
+        mean_loss, accuracy, TPR, FPR, con_mat = mil_train_loop(X, y, model, optimizer, DEVICE)
 
         losses[epoch_idx] = mean_loss
         accuracies[epoch_idx] = accuracy
@@ -149,7 +149,7 @@ def train_model(
         # VALID ---------------------------------------------
         valid_start = time.time()
 
-        val_mean_loss, val_accuracy, val_TPR, val_FPR, val_con_mat = valid_loop(X_valid, y_valid, model, DEVICE)
+        val_mean_loss, val_accuracy, val_TPR, val_FPR, val_con_mat = mil_valid_loop(X_valid, y_valid, model, DEVICE)
 
         val_losses[epoch_idx] = val_mean_loss
         val_accuracies[epoch_idx] = val_accuracy
@@ -207,33 +207,3 @@ def save_checkpoint(model, optimizer, epochs, loss, path):
     }, path)
     print('Checkpoint created!')
     return
-
-
-# Function to load pre-processed data from pickle
-def load_data(data_path):
-    datasets = pickle.load(open(data_path, "rb"))
-
-    X, y = [], []
-
-    print("Preparing train data...")
-    for i, tup in enumerate(datasets[0]['train']):
-        X.append(tup[0])
-        y.append(tup[1])
-
-    print("Train data ready!")
-
-    X_valid, y_valid = [], []
-
-    print("Preparing validation data...")
-    for i, tup in enumerate(datasets[0]['test']):
-        X_valid.append(tup[0])
-        y_valid.append(tup[1])
-
-    print("Validation data ready!")
-
-    del datasets
-
-    shape = X[0].shape
-    print('First train datapoint shape: ', shape)
-
-    return X, y, X_valid, y_valid
