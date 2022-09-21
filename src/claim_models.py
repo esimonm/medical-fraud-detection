@@ -101,3 +101,61 @@ class MIL_RC(nn.Module):
         out = self.sigmoid(self.out(rc_sum))
 
         return out
+
+
+class AutoEncoderSimple(nn.Module):
+    def __init__(self, input_size):
+        super().__init__()
+        # Encoder
+        self.lin_1 = nn.Linear(input_size,20)
+        self.lin_2 = nn.Linear(20,10)
+        # Decoder
+        self.lin_3 = nn.Linear(10,20)
+        self.lin_4 = nn.Linear(20,input_size)
+        
+        self.drop = nn.Dropout(0.05)
+
+    def forward(self, data):
+        x = torch.tanh(self.lin_1(data))
+        x = self.drop(torch.tanh(self.lin_2(x)))
+        x = torch.tanh(self.lin_3(x))
+        x = self.lin_4(x)
+        return x
+
+
+class AutoEncoderComplex(nn.Module):
+    def __init__(self, input_size):
+        super(AutoEncoderComplex, self).__init__()
+        # Encoder
+        self.encoder = nn.Sequential(
+            nn.Linear(input_size, int(input_size/2)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/2), int(input_size/4)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/4), int(input_size/8)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/8), int(input_size/16)),
+            nn.ReLU()
+        )
+        # Decoder
+        self.decoder = nn.Sequential(
+            nn.Linear(int(input_size/16), int(input_size/8)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/8), int(input_size/4)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/4), int(input_size/2)),
+            nn.ReLU(),
+            nn.Dropout(0.1),
+            nn.Linear(int(input_size/2), int(input_size)),
+            nn.ReLU()
+        )
+
+    def forward(self, x):
+        encoded = self.encoder(x)
+        decoded = self.decoder(encoded)
+        return decoded
